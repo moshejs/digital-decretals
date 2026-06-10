@@ -1,0 +1,24 @@
+{
+  "name": "digital-decretals",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Searchable web edition of Bernard of Parma's Glossa Ordinaria to the Decretals of Gregory IX — text by Edward A. Reno III",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve out",
+    "data": "python3 ../build/parse_gloss.py \"../Decretals Gloss, online version (without Casus).docx\" -o public/gloss-data.json",
+    "test": "node --experimental-strip-types tests/search.test.ts"
+  },
+  "dependencies": {
+    "next": "^15.5.19",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.6.0"
+  }
+}

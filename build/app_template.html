@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Digital Decretals — Searchable Glossa Ordinaria</title>
+<meta name="description" content="Free-text search of Bernard of Parma's Glossa Ordinaria to the Decretals of Gregory IX (Liber extra), with standardized legal allegations. Text by Edward A. Reno III.">
+<style>
+:root{
+  --bg:#f7f5f0; --panel:#fffdf9; --ink:#23201a; --muted:#6f6759; --faint:#968d7c;
+  --rubric:#8a2418; --rubric-dark:#641a10; --line:#e4ded1; --line-soft:#ece7dc;
+  --mark:#f9e7a8; --mark-ink:#3d3000; --focus:#b4593f;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,'Times New Roman',serif;
+  --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;height:100%}
+a{color:var(--rubric);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;transition:transform 140ms var(--ease-out)}
+button:active{transform:scale(0.97)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:2px}
+mark{background:var(--mark);color:var(--mark-ink);border-radius:2px;padding:0 1px}
+
+/* ---------- header ---------- */
+header.site{border-bottom:1px solid var(--line);background:var(--panel)}
+.site-inner{max-width:1200px;margin:0 auto;padding:20px 22px 14px}
+.site h1{font-family:var(--serif);font-weight:600;font-size:25px;margin:0;letter-spacing:.2px}
+.site h1 .dd{color:var(--rubric)}
+.site .sub{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.site .sub b{color:var(--ink);font-weight:600}
+
+/* ---------- toolbar ---------- */
+.toolbar{position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(60,45,20,.03)}
+.tool-inner{max-width:1200px;margin:0 auto;padding:12px 22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.searchwrap{position:relative;flex:1 1 340px;min-width:240px}
+.searchwrap svg{position:absolute;left:12px;top:50%;translate:0 -50%;width:16px;height:16px;color:var(--faint);pointer-events:none}
+#q{width:100%;padding:10px 84px 10px 36px;font-family:var(--serif);font-size:16.5px;color:var(--ink);
+   background:var(--bg);border:1px solid var(--line);border-radius:9px;transition:border-color 140ms ease, background 140ms ease}
+#q:focus{outline:none;border-color:var(--focus);background:#fff}
+#q::placeholder{color:var(--faint);font-style:italic}
+.kbd-hint{position:absolute;right:10px;top:50%;translate:0 -50%;color:var(--faint);font-size:11px;border:1px solid var(--line);
+  border-radius:5px;padding:1px 6px;background:var(--panel);pointer-events:none}
+#clearq{position:absolute;right:42px;top:50%;translate:0 -50%;color:var(--faint);font-size:15px;padding:2px 6px;display:none;border-radius:6px}
+#clearq:hover{color:var(--ink)}
+.opts{display:flex;gap:2px 14px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:12.5px}
+.opts label{display:flex;gap:5px;align-items:center;cursor:pointer;white-space:nowrap;padding:3px 0}
+.opts input{accent-color:var(--rubric);width:14px;height:14px;cursor:pointer}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:7px 8px;max-width:230px;cursor:pointer}
+.filters select:focus{outline:none;border-color:var(--focus)}
+#toggleTree{display:none;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--muted);background:var(--bg)}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:296px minmax(0,1fr);gap:0;align-items:start}
+aside#tree{position:sticky;top:63px;max-height:calc(100vh - 63px);overflow-y:auto;padding:16px 8px 40px 14px;
+  border-right:1px solid var(--line-soft);scrollbar-width:thin}
+main{padding:20px 22px 90px;min-height:60vh}
+
+/* ---------- tree ---------- */
+.tree-head{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:4px 0 8px 6px}
+.tnode{font-size:13.5px}
+.tnode>button{display:flex;width:100%;text-align:left;gap:6px;align-items:baseline;padding:5px 6px;border-radius:7px;color:var(--ink)}
+.tnode>button:hover{background:#efeadf}
+.tnode>button .car{color:var(--faint);font-size:10px;width:10px;flex:none;transition:rotate 140ms var(--ease-out);translate:0 -1px}
+.tnode.open>button .car{rotate:90deg}
+.tbook>button{font-weight:650;font-size:14px}
+.tkids{display:none;margin-left:13px;border-left:1px solid var(--line-soft);padding-left:7px}
+.tnode.open>.tkids{display:block}
+.ttitle>button .num{color:var(--rubric);font-weight:600;flex:none}
+.tchap{display:block;width:100%;text-align:left;padding:3.5px 6px;border-radius:6px;color:var(--ink);font-size:13px;line-height:1.35}
+.tchap:hover{background:#efeadf}
+.tchap .num{color:var(--rubric);font-weight:600;margin-right:5px}
+.tchap.active{background:#ece4d2;font-weight:600}
+.tleaf-rp{font-style:italic}
+
+/* ---------- welcome / cards ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:16px}
+.card h2{font-family:var(--serif);font-size:19px;margin:0 0 8px}
+.card p{margin:8px 0;color:var(--ink);font-size:14.5px}
+.card p.dim, .dim{color:var(--muted)}
+.ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:6px 18px;margin-top:10px}
+.ex{display:flex;gap:8px;align-items:baseline;font-size:13.5px;padding:4px 6px;border-radius:7px;text-align:left;width:100%}
+.ex:hover{background:#f3eee2}
+.ex code{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--rubric);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex .eq{color:var(--faint);flex:none;font-size:12px}
+.ex .what{color:var(--muted);flex:none;font-size:12.5px}
+details.help{margin-top:6px}
+details.help summary{cursor:pointer;color:var(--rubric);font-weight:600;font-size:13.5px;list-style:none;display:inline-flex;gap:6px;align-items:center}
+details.help summary::-webkit-details-marker{display:none}
+details.help summary .car{font-size:10px;transition:rotate 140ms var(--ease-out)}
+details.help[open] summary .car{rotate:90deg}
+.help-body{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+.help-body h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:14px 0 4px}
+.stats-line{color:var(--muted);font-size:13px;margin-top:14px}
+
+/* ---------- results ---------- */
+.rsum{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin:2px 0 14px;color:var(--muted);font-size:13.5px}
+.rsum b{color:var(--ink);font-size:15px;font-weight:650}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 12px;font-size:12.5px;color:var(--muted)}
+.chip b{color:var(--ink)}
+.chip:hover{border-color:var(--focus);color:var(--ink)}
+.chip.on{background:#f0e6d2;border-color:#d9c89e;color:var(--ink)}
+.locrow{margin:0 0 16px;padding:10px 14px;background:#f3efe5;border:1px solid var(--line-soft);border-radius:10px;font-size:13px;color:var(--muted)}
+.locrow .loc{display:inline-block;margin:2px 10px 2px 0;font-size:13px}
+.locrow .loc b{font-weight:600}
+.hit{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 18px 13px;margin-bottom:10px}
+.hit header{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:6px}
+.cite{font-weight:650;font-size:14px;color:var(--rubric);letter-spacing:.1px}
+.cite:hover{text-decoration:underline}
+.cite .sv{font-weight:400;font-style:italic;color:var(--muted)}
+.cite em{font-family:var(--serif);font-size:15px}
+.crumb{color:var(--faint);font-size:12px}
+.txt{font-family:var(--serif);font-size:16.5px;line-height:1.62;white-space:pre-line;overflow-wrap:break-word}
+.more-btn{display:block;margin:18px auto 0;padding:9px 22px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--rubric);font-weight:600;font-size:13.5px}
+.more-btn:hover{border-color:var(--focus)}
+.noresults{color:var(--muted);font-size:14.5px;padding:30px 8px;text-align:center}
+.noresults code{font-family:var(--serif);font-style:italic;color:var(--rubric)}
+
+/* ---------- reading view ---------- */
+.read-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.read-top .navbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.read-top .navbtn:hover{color:var(--ink);border-color:var(--focus)}
+.read-top .spacer{flex:1}
+.read{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px 30px 30px}
+.read .crumbs{font-size:12.5px;color:var(--faint);margin-bottom:4px}
+.read .crumbs a{color:var(--muted)}
+.read h2{font-family:var(--serif);font-size:23px;margin:2px 0 2px;font-weight:650}
+.read h2 .x{color:var(--rubric)}
+.read .rubric{font-family:var(--serif);font-style:italic;color:var(--muted);font-size:15px;margin-bottom:14px}
+.gunit{padding:13px 0;border-top:1px solid var(--line-soft)}
+.gunit:first-of-type{border-top:none}
+.gunit .lem{font-family:var(--serif);font-weight:650;font-size:17px;color:var(--rubric-dark);font-variant:small-caps;letter-spacing:.3px}
+.gunit .lem .inp{font-variant:normal;font-style:italic;font-weight:500;color:var(--muted);font-size:14.5px}
+.gunit.focus{box-shadow:inset 3px 0 0 var(--rubric);padding-left:14px;margin-left:-17px;background:linear-gradient(90deg,#faf4e4 0,transparent 70%)}
+.gunit .txt{margin-top:3px}
+
+/* ---------- footer ---------- */
+footer.site{border-top:1px solid var(--line);color:var(--faint);font-size:12.5px;background:var(--panel)}
+footer.site .site-inner{padding:16px 22px;display:flex;flex-wrap:wrap;gap:4px 26px}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  #toggleTree{display:inline-block}
+  aside#tree{position:fixed;left:0;top:0;bottom:0;z-index:60;width:min(320px,86vw);max-height:none;background:var(--panel);
+    border-right:1px solid var(--line);box-shadow:0 0 40px rgba(40,30,10,.18);padding-top:20px;
+    transform:translateX(-105%);transition:transform 220ms cubic-bezier(0.32,0.72,0,1)}
+  aside#tree.open{transform:translateX(0)}
+  .scrim{position:fixed;inset:0;background:rgba(30,24,12,.32);z-index:55;opacity:0;pointer-events:none;transition:opacity 200ms ease}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .kbd-hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:0ms!important;animation:none!important}
+}
+@media print{
+  .toolbar,aside#tree,footer.site,.read-top,#toggleTree{display:none!important}
+  .wrap{display:block}
+  body{background:#fff}
+  .read,.hit{border:none;padding:0}
+}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <h1><span class="dd">The Digital Decretals</span> · Glossa Ordinaria</h1>
+    <p class="sub">Bernard of Parma's gloss on the <b>Decretals of Gregory IX</b> (Liber extra) — searchable edition · text by <b>Edward A. Reno III</b>, Adelphi University · <span id="subStats"></span></p>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="tool-inner">
+    <button id="toggleTree" aria-label="Browse the text">☰ Browse</button>
+    <div class="searchwrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Search the gloss… e.g.  qui fil. sint legit., per venerabilem" aria-label="Search the gloss">
+      <button id="clearq" aria-label="Clear search">✕</button>
+      <span class="kbd-hint">/</span>
+    </div>
+    <div class="filters" role="group" aria-label="Limit search scope">
+      <select id="fBook" aria-label="Limit to book"></select>
+      <select id="fTitle" aria-label="Limit to title"></select>
+      <select id="fChap" aria-label="Limit to chapter"></select>
+    </div>
+    <div class="opts">
+      <label title="Match upper/lower case exactly"><input type="checkbox" id="oCase">Match case</label>
+      <label title="Ignore . , ; : ( ) and other punctuation when matching"><input type="checkbox" id="oPunct">Ignore punctuation</label>
+      <label title="Match whole words only (useful for jurist sigla such as Host. or for ‘versus’)"><input type="checkbox" id="oWord">Whole words</label>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <aside id="tree" aria-label="Browse by book, title and chapter">
+    <div class="tree-head">Browse the text</div>
+    <div id="treeRoot"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<footer class="site">
+  <div class="site-inner">
+    <span>Text & standardized allegations © Edward A. Reno III — <a href="https://sites.google.com/view/digitaldecretals/" target="_blank" rel="noopener">The Digital Decretals</a></span>
+    <span>Source: <span id="ftSource"></span> (<span id="ftDate"></span>)</span>
+    <span>Based on the Editio Romana (1582)</span>
+  </div>
+</footer>
+
+<script>
+const DATA = /*__DATA__*/;
+
+/* ================= core (DOM-free) ================= */
+const PUNCT = /[.,;:!?()\[\]{}'"‘’“”§&\/\\\-]/;
+
+function normalize(s, cs, ip){
+  let n = "", map = [];
+  let prevSpace = true;
+  for (let i = 0; i < s.length; i++){
+    let ch = s[i];
+    if (ch === "\n" || ch === "\t") ch = " ";
+    if (!cs) ch = ch.toLowerCase();
+    if (ip && PUNCT.test(ch)) continue;
+    if (ch === " "){
+      if (prevSpace) continue;
+      prevSpace = true;
+    } else prevSpace = false;
+    n += ch; map.push(i);
+  }
+  // trim trailing space
+  while (n.endsWith(" ")){ n = n.slice(0,-1); map.pop(); }
+  return {n, map};
+}
+const isWordChar = c => /[A-Za-z0-9]/.test(c);
+
+function findMatches(norm, q, ww){
+  const out = [];
+  if (!q) return out;
+  let i = 0;
+  while ((i = norm.n.indexOf(q, i)) !== -1){
+    const okL = i === 0 || !isWordChar(norm.n[i-1]) || !isWordChar(q[0]);
+    const okR = i + q.length >= norm.n.length || !isWordChar(norm.n[i+q.length]) || !isWordChar(q[q.length-1]);
+    if (!ww || (okL && okR)) out.push([norm.map[i], norm.map[i+q.length-1] + 1]);
+    i += 1;
+  }
+  return out;
+}
+/* ================= end core ================= */
+
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const nf = n => n.toLocaleString("en-US");
+
+/* ---- flatten data ---- */
+const U = [];          // flat gloss units
+const CH = [];         // linear chapter list for prev/next: {kind:'rp'|'ch', book,title,chap,units:[...]}
+DATA.books.forEach(book => {
+  if (book.units.length){
+    const node = {kind:"rp", book, title:null, chap:null, units:[]};
+    CH.push(node);
+    book.units.forEach(u => { const r = {book, title:null, chap:null, lemma:u.lemma, text:u.text, node}; U.push(r); node.units.push(r); });
+  }
+  book.titles.forEach(title => title.chapters.forEach(chap => {
+    const node = {kind:"ch", book, title, chap, units:[]};
+    CH.push(node);
+    chap.units.forEach(u => { const r = {book, title, chap, lemma:u.lemma, text:u.text, node}; U.push(r); node.units.push(r); });
+  }));
+});
+U.forEach((u,i) => u.id = i);
+CH.forEach((c,i) => c.idx = i);
+
+function citeHTML(u, lemRanges){
+  const lem = u.lemma === null
+    ? '<span class="sv" title="Gloss at the head of the chapter (in principio), before the first lemma">in princ.</span>'
+    : '<span class="sv">s.v.</span> <em>' + highlight(u.lemma, lemRanges || []) + "</em>";
+  if (!u.chap) return "Rex pacificus, " + lem;
+  return "X " + u.chap.num + (u.lemma === null ? ", " : " ") + lem;
+}
+function crumb(u){
+  return u.chap ? u.book.label + " · " + u.title.num + " " + esc(u.title.rubric) : "Preface";
+}
+
+/* ---- normalization cache ---- */
+let mode = {cs:false, ip:false, ww:false};
+let cacheKey = "";
+function ensureCache(){
+  const k = (mode.cs?1:0) + "" + (mode.ip?1:0);
+  if (k === cacheKey) return;
+  cacheKey = k;
+  for (const u of U){
+    u._t = normalize(u.text, mode.cs, mode.ip);
+    u._l = u.lemma ? normalize(u.lemma, mode.cs, mode.ip) : null;
+  }
+  for (const c of CH){
+    if (c.kind === "ch"){
+      c._inc = normalize(c.chap.incipit, mode.cs, mode.ip);
+      c._rub = normalize(c.title.rubric, mode.cs, mode.ip);
+    }
+  }
+}
+
+function highlight(text, ranges){
+  if (!ranges || !ranges.length) return esc(text);
+  let out = "", pos = 0;
+  for (const [a,b] of ranges){
+    if (a < pos) continue;
+    out += esc(text.slice(pos,a)) + "<mark>" + esc(text.slice(a,b)) + "</mark>";
+    pos = b;
+  }
+  return out + esc(text.slice(pos));
+}
+
+/* ---- state ---- */
+const $ = id => document.getElementById(id);
+const main = $("main");
+let state = {q:"", book:null, title:null, chap:null, view:"search", loc:null, focusUnit:null};
+let lastResults = null;
+
+/* ---- filters ---- */
+function fillBookSel(){
+  $("fBook").innerHTML = '<option value="">All books</option>' +
+    DATA.books.map((b,i) => `<option value="${i}">${esc(b.label)}</option>`).join("");
+}
+function fillTitleSel(){
+  const b = state.book;
+  const el = $("fTitle");
+  if (!b){ el.innerHTML = '<option value="">All titles</option>'; el.disabled = true; }
+  else if (!b.titles.length){ el.innerHTML = '<option value="">— no titles —</option>'; el.disabled = true; }
+  else {
+    el.disabled = false;
+    el.innerHTML = '<option value="">All titles</option>' +
+      b.titles.map((t,i) => `<option value="${i}">${t.num} — ${esc(t.rubric)}</option>`).join("");
+  }
+}
+function fillChapSel(){
+  const t = state.title, el = $("fChap");
+  if (!t){ el.innerHTML = '<option value="">All chapters</option>'; el.disabled = true; }
+  else {
+    el.disabled = false;
+    el.innerHTML = '<option value="">All chapters</option>' +
+      t.chapters.map((c,i) => `<option value="${i}">${c.num} ${esc(c.incipit)}</option>`).join("");
+  }
+}
+
+/* ---- search ---- */
+function unitInScope(u){
+  if (state.book && u.book !== state.book) return false;
+  if (state.title && u.title !== state.title) return false;
+  if (state.chap && u.chap !== state.chap) return false;
+  return true;
+}
+function runSearch(){
+  const raw = state.q;
+  const qn = normalize(raw, mode.cs, mode.ip).n;
+  if (qn.length < 2){ renderWelcome(); return; }
+  ensureCache();
+  const t0 = performance.now();
+  const hits = [];           // {u, tr:[[a,b]], lr:[[a,b]], n}
+  let occ = 0;
+  const perBook = new Map(DATA.books.map(b => [b, 0]));
+  const chapSet = new Set();
+  for (const u of U){
+    const tr = findMatches(u._t, qn, mode.ww);
+    const lr = u._l ? findMatches(u._l, qn, mode.ww) : [];
+    const n = tr.length + lr.length;
+    if (!n) continue;
+    perBook.set(u.book, perBook.get(u.book) + n);
+    if (!unitInScope(u)) continue;
+    occ += n; chapSet.add(u.node);
+    hits.push({u, tr, lr, n});
+  }
+  // heading matches (chapters / titles) within scope
+  const locs = [];
+  for (const c of CH){
+    if (c.kind !== "ch") continue;
+    if (state.book && c.book !== state.book) continue;
+    if (state.title && c.title !== state.title) continue;
+    if (state.chap && c.chap !== state.chap) continue;
+    if (findMatches(c._inc, qn, mode.ww).length) locs.push({c, kind:"chap"});
+  }
+  const titleLocs = [];
+  const seenT = new Set();
+  for (const c of CH){
+    if (c.kind !== "ch" || seenT.has(c.title)) continue;
+    if (state.book && c.book !== state.book) continue;
+    seenT.add(c.title);
+    if (findMatches(c._rub, qn, mode.ww).length) titleLocs.push(c.title);
+  }
+  const ms = performance.now() - t0;
+  lastResults = {hits, occ, chapCount:chapSet.size, perBook, locs, titleLocs, ms, qn};
+  renderResults();
+}
+
+/* ---- rendering ---- */
+function renderWelcome(){
+  state.view = "search"; lastResults = null;
+  const bks = DATA.books.map(b => {
+    const n = b.units.length + b.titles.reduce((s,t) => s + t.chapters.reduce((s2,c) => s2 + c.units.length, 0), 0);
+    return `<b>${esc(b.label)}</b> (${nf(n)} glosses)`;
+  }).join(" · ");
+  main.innerHTML = `
+  <div class="card">
+    <h2>Search the Glossa Ordinaria</h2>
+    <p>This tool provides a free-text search of Bernard of Parma's <i>Glossa Ordinaria</i> to the
+       <i>Decretals of Gregory IX</i> (1234), based on the 1582 <i>Editio Romana</i>. All legal allegations have been
+       standardized by Prof. Reno so that every citation of a given law can be retrieved with a single search.</p>
+    <p class="dim">Type any word or phrase above — or click an example. Use the <b>Browse</b> panel to read the gloss
+       in order, book by book. Limit a search with the book / title / chapter menus.</p>
+    <div class="ex-grid">${examples.map((e,i) =>
+      `<button class="ex" data-ex="${i}" title="Run this search"><code>${esc(e.q)}</code><span class="eq">→</span><span class="what">${esc(e.what)}</span></button>`).join("")}
+    </div>
+    <details class="help">
+      <summary><span class="car">▶</span> How the allegations work</summary>
+      <div class="help-body">
+        <p class="dim">Medieval jurists cited laws not by number but by abbreviated title + the opening words
+          (<i>incipit</i>) of the law. The Digital Decretals standardizes those abbreviations, one consistent form per law,
+          for every source the gloss cites:</p>
+        <h3>Liber extra (the Decretals themselves)</h3>
+        <p><code class="dim">infra / supra, [title abbrev.], [incipit]</code> — e.g.
+           <i>infra, de frig. et malef., quod sedem</i> = X 4.15.2. Since every title's abbreviation is unique,
+           you may omit <i>infra/supra</i> when searching. Post-1234 legislation appears as
+           <i>extravag.</i> + incipit.</p>
+        <h3>Decretum Gratiani</h3>
+        <p><i>50. dist., si lapsis</i> (= D. 50 c. 1) · <i>15. q. 8, si quis presbyter</i> (= C. 15 q. 8 c. 4) ·
+           dicta with § : <i>27. q. 2 § sequitur</i> · <i>de poen. dist. 3, qui vult</i> · <i>de conse. dist. 4, sanctum est baptisma</i></p>
+        <h3>Roman law (Corpus iuris civilis)</h3>
+        <p>Codex: <i>C. de legi. et const., non dubium</i> · Digest: <i>ff. de itin. act. priv., nec enim</i> ·
+           Institutes: <i>Inst. de rerum div. § illud quaesitum</i> · Novels: <i>in Auth. ut liceat mat. et avi. § quod autem</i> ·
+           authenticae: <i>authen.</i> + incipit</p>
+        <h3>Jurists & verses</h3>
+        <p>Sigla of cited jurists are searchable with <b>Whole words</b> on: <i>Host.</i> (Hostiensis), <i>Io.</i> (Iohannes
+           Teutonicus), <i>Laur.</i> (Laurentius), <i>Vincen.</i>, <i>Tanc.</i>, <i>Ber.</i> (Bernard) … Mnemonic verses are
+           introduced by the word <i>versus</i>.</p>
+        <p class="dim">Full documentation, the abbreviations spreadsheet, and the downloadable Word/PDF text:
+           <a href="https://sites.google.com/view/digitaldecretals/" target="_blank" rel="noopener">The Digital Decretals website</a>.</p>
+      </div>
+    </details>
+    <p class="stats-line">Currently online: ${bks} — ${nf(DATA.stats.units)} gloss units in all, under ${nf(DATA.stats.chapters)} capitula. Further books will be added as Prof. Reno completes them.</p>
+  </div>`;
+  main.querySelectorAll(".ex").forEach(b => b.addEventListener("click", () => applyExample(examples[+b.dataset.ex])));
+}
+
+const examples = [
+  {q:"qui fil. sint legit., per venerabilem", what:"all citations of X 4.17.13"},
+  {q:"de frig. et malef., quod sedem", what:"all citations of X 4.15.2"},
+  {q:"de elect., venerabilem", what:"all citations of X 1.6.34"},
+  {q:"15. q. 8, si quis presbyter", what:"Decretum, C. 15 q. 8 c. 4"},
+  {q:"C. de legi. et const., non dubium", what:"Codex 1.14.5"},
+  {q:"ff. de regul. iur.", what:"Digest 50.17, by title"},
+  {q:"extravag.", what:"all post-1234 legislation"},
+  {q:"matrimonium", what:"plain word search"},
+  {q:"versus", what:"mnemonic verses", ww:true},
+  {q:"Host.", what:"opinions of Hostiensis", ww:true, cs:true},
+];
+function applyExample(e){
+  $("oWord").checked = !!e.ww; $("oCase").checked = !!e.cs; $("oPunct").checked = false;
+  readOpts();
+  $("q").value = e.q; state.q = e.q;
+  runSearch(); pushHash();
+}
+
+const PAGE = 150;
+function renderResults(){
+  state.view = "search";
+  const r = lastResults;
+  if (!r){ renderWelcome(); return; }
+  let html = "";
+  const scopeBits = [];
+  if (state.book) scopeBits.push(state.book.label);
+  if (state.title) scopeBits.push(state.title.num + " " + esc(state.title.rubric));
+  if (state.chap) scopeBits.push("cap. " + state.chap.num);
+  html += `<div class="rsum"><b>${nf(r.occ)}</b> occurrence${r.occ===1?"":"s"} in <b>${nf(r.hits.length)}</b> gloss${r.hits.length===1?"":"es"}` +
+          (r.chapCount ? ` across <b>${nf(r.chapCount)}</b> capitula` : "") +
+          (scopeBits.length ? ` — limited to ${scopeBits.join(" › ")}` : "") +
+          `<span class="dim" style="font-size:11.5px">(${nf(DATA.stats.units)} glosses searched in ${r.ms < 1 ? "&lt;1" : Math.round(r.ms)} ms)</span></div>`;
+  // per-book chips
+  html += `<div class="chips">` + DATA.books.map((b,i) => {
+    const n = r.perBook.get(b);
+    const on = state.book === b;
+    return `<button class="chip${on?" on":""}" data-bk="${i}" title="${on?"Remove book filter":"Limit to "+esc(b.label)}"><b>${esc(b.label)}</b> ${nf(n)}</button>`;
+  }).join("") + `</div>`;
+  // heading matches
+  if (r.locs.length || r.titleLocs.length){
+    const items = [];
+    for (const t of r.titleLocs.slice(0,12))
+      items.push(`<span class="loc">tit. <a href="#" data-tt="${t.num}"><b>${t.num}</b> ${esc(t.rubric)}</a></span>`);
+    for (const {c} of r.locs.slice(0,24))
+      items.push(`<span class="loc"><a href="#" data-ch="${c.idx}"><b>X ${c.chap.num}</b> <i>${esc(c.chap.incipit)}</i></a></span>`);
+    const extra = Math.max(0, r.locs.length - 24) + Math.max(0, r.titleLocs.length - 12);
+    html += `<div class="locrow"><b style="color:var(--muted)">Matching places in the text:</b> ${items.join(" ")}${extra?` <span class="dim">+${extra} more</span>`:""}</div>`;
+  }
+  if (!r.hits.length){
+    html += `<div class="noresults">No glosses match <code>${esc(state.q)}</code>${scopeBits.length?" in this scope":""}.<br>
+      <span class="dim" style="font-size:13px">Check the punctuation of the allegation (or enable “Ignore punctuation”), or try a shorter piece of the citation.</span></div>`;
+  }
+  html += `<div id="hitlist"></div>`;
+  main.innerHTML = html;
+  main.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    const b = DATA.books[+c.dataset.bk];
+    setBookFilter(state.book === b ? null : b);
+  }));
+  main.querySelectorAll("[data-ch]").forEach(a => a.addEventListener("click", ev => { ev.preventDefault(); openNode(CH[+a.dataset.ch]); }));
+  main.querySelectorAll("[data-tt]").forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    const t = (state.book ? [state.book] : DATA.books).flatMap(b => b.titles).find(t => t.num === a.dataset.tt);
+    if (t){ const c = CH.find(c => c.title === t); if (c) openNode(c); }
+  }));
+  renderedHits = 0;
+  appendHits();
+}
+let renderedHits = 0;
+function appendHits(){
+  const r = lastResults; if (!r) return;
+  const list = $("hitlist"); if (!list) return;
+  const slice = r.hits.slice(renderedHits, renderedHits + PAGE);
+  const frag = document.createElement("div");
+  frag.innerHTML = slice.map(h => `
+    <article class="hit">
+      <header>
+        <a class="cite" href="#" data-u="${h.u.id}">${citeHTML(h.u, h.lr)}</a>
+        <span class="crumb">${crumb(h.u)}${h.u.chap ? " · cap. <i>" + esc(h.u.chap.incipit) + "</i>" : ""}${h.n>1?` · ${h.n} occurrences`:""}</span>
+      </header>
+      <div class="txt">${highlight(h.u.text, h.tr)}</div>
+    </article>`).join("");
+  while (frag.firstChild) list.appendChild(frag.firstChild);
+  renderedHits += slice.length;
+  const old = $("moreBtn"); if (old) old.remove();
+  if (renderedHits < r.hits.length){
+    const btn = document.createElement("button");
+    btn.id = "moreBtn"; btn.className = "more-btn";
+    btn.textContent = `Show ${Math.min(PAGE, r.hits.length - renderedHits)} more (${nf(r.hits.length - renderedHits)} remaining)`;
+    btn.addEventListener("click", appendHits);
+    list.after(btn);
+  }
+  list.querySelectorAll(".cite").forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    const u = U[+a.dataset.u];
+    openNode(u.node, u.id);
+  }));
+}
+
+/* ---- reading view ---- */
+function openNode(node, focusUnit){
+  state.view = "read"; state.loc = node; state.focusUnit = focusUnit ?? null;
+  const qn = lastResults ? lastResults.qn : null;
+  ensureCache();
+  let head, crumbs, rubric = "";
+  if (node.kind === "rp"){
+    crumbs = "Preface to the Decretals";
+    head = `<span class="x">Rex pacificus</span>`;
+    rubric = "Bull of promulgation of Gregory IX (5 September 1234)";
+  } else {
+    crumbs = `${esc(node.book.label)} › tit. ${node.title.num} <i>${esc(node.title.rubric)}</i>`;
+    head = `<span class="x">X ${node.chap.num}</span> ${esc(node.chap.incipit)}`;
+    rubric = node.title.rubric;
+  }
+  const units = node.units.map(u => {
+    const tr = qn ? findMatches(u._t, qn, mode.ww) : [];
+    const lr = qn && u._l ? findMatches(u._l, qn, mode.ww) : [];
+    const lem = u.lemma === null
+      ? `<span class="inp" title="Gloss at the head of the chapter (in principio), before the first lemma">In princ.</span>`
+      : highlight(u.lemma, lr);
+    return `<div class="gunit${state.focusUnit === u.id ? " focus" : ""}" id="u${u.id}">
+      <div class="lem">${lem}</div>
+      <div class="txt">${highlight(u.text, tr)}</div></div>`;
+  }).join("");
+  const prev = CH[node.idx-1], next = CH[node.idx+1];
+  const lbl = c => c ? (c.kind === "rp" ? "Rex pacificus" : "X " + c.chap.num + " " + c.chap.incipit) : "";
+  main.innerHTML = `
+    <div class="read-top">
+      ${lastResults ? `<button class="navbtn" id="backBtn">← Results</button>` : ""}
+      <span class="spacer"></span>
+      ${prev ? `<button class="navbtn" data-nav="${node.idx-1}" title="${esc(lbl(prev))}">‹ ${esc(lbl(prev)).slice(0,34)}</button>` : ""}
+      ${next ? `<button class="navbtn" data-nav="${node.idx+1}" title="${esc(lbl(next))}">${esc(lbl(next)).slice(0,34)} ›</button>` : ""}
+    </div>
+    <div class="read">
+      <div class="crumbs">${crumbs}</div>
+      <h2>${head}</h2>
+      <div class="rubric">${node.kind === "rp" ? esc(rubric) : "tit. " + esc(rubric) + " · " + node.units.length + (node.units.length === 1 ? " gloss" : " glosses")}</div>
+      ${units}
+    </div>`;
+  const bb = $("backBtn"); if (bb) bb.addEventListener("click", () => { state.view = "search"; renderResults(); pushHash(); window.scrollTo(0,0); });
+  main.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => openNode(CH[+b.dataset.nav])));
+  markTreeActive(node);
+  pushHash();
+  const f = state.focusUnit !== null && document.getElementById("u" + state.focusUnit);
+  if (f) f.scrollIntoView({block:"start"}); else window.scrollTo(0,0);
+  if (f) { const y = window.scrollY - 120; window.scrollTo(0, y > 0 ? y : 0); }
+}
+
+/* ---- tree ---- */
+function buildTree(){
+  const root = $("treeRoot");
+  root.innerHTML = "";
+  DATA.books.forEach((book, bi) => {
+    const bn = document.createElement("div");
+    bn.className = "tnode tbook";
+    if (book.id === "RP"){
+      bn.innerHTML = `<button class="tchap tleaf-rp" data-rp="1"><span class="num">¶</span>Rex pacificus <span class="dim">(preface)</span></button>`;
+      root.appendChild(bn);
+      bn.querySelector("button").addEventListener("click", () => openNode(CH.find(c => c.kind === "rp")));
+      return;
+    }
+    bn.innerHTML = `<button><span class="car">▶</span><span>${esc(book.label)}</span> <span class="dim" style="font-size:11.5px">${book.titles.length} tit.</span></button><div class="tkids"></div>`;
+    const kids = bn.querySelector(".tkids");
+    bn.querySelector("button").addEventListener("click", () => {
+      bn.classList.toggle("open");
+      if (!kids.dataset.done){ kids.dataset.done = 1; renderTitles(book, kids); }
+    });
+    root.appendChild(bn);
+  });
+}
+function renderTitles(book, container){
+  book.titles.forEach(title => {
+    const tn = document.createElement("div");
+    tn.className = "tnode ttitle";
+    tn.innerHTML = `<button><span class="car">▶</span><span class="num">${title.num}</span><span>${esc(title.rubric)}</span></button><div class="tkids"></div>`;
+    const kids = tn.querySelector(".tkids");
+    tn.querySelector("button").addEventListener("click", () => {
+      tn.classList.toggle("open");
+      if (!kids.dataset.done){
+        kids.dataset.done = 1;
+        title.chapters.forEach(chap => {
+          const node = CH.find(c => c.chap === chap);
+          const b = document.createElement("button");
+          b.className = "tchap"; b.dataset.chidx = node.idx;
+          b.innerHTML = `<span class="num">${chap.num.split(".").pop()}</span>${esc(chap.incipit)}`;
+          b.addEventListener("click", () => { openNode(node); closeTreeMobile(); });
+          kids.appendChild(b);
+        });
+      }
+    });
+    container.appendChild(tn);
+  });
+}
+function markTreeActive(node){
+  document.querySelectorAll(".tchap.active").forEach(e => e.classList.remove("active"));
+  if (node.kind === "ch"){
+    const el = document.querySelector(`.tchap[data-chidx="${node.idx}"]`);
+    if (el) el.classList.add("active");
+  }
+}
+
+/* ---- filters & options wiring ---- */
+function setBookFilter(b){
+  state.book = b; state.title = null; state.chap = null;
+  $("fBook").value = b ? DATA.books.indexOf(b) : "";
+  fillTitleSel(); fillChapSel();
+  if (state.q) runSearch();
+  pushHash();
+}
+function readOpts(){
+  mode.cs = $("oCase").checked; mode.ip = $("oPunct").checked; mode.ww = $("oWord").checked;
+}
+
+/* ---- url hash (shareable searches & places) ---- */
+let applyingHash = false;
+function pushHash(){
+  if (applyingHash) return;
+  let h = "";
+  if (state.view === "read" && state.loc){
+    h = "loc=" + (state.loc.kind === "rp" ? "RP" : state.loc.chap.num);
+  } else if (state.q){
+    const p = new URLSearchParams();
+    p.set("q", state.q);
+    if (state.book) p.set("b", state.book.id);
+    if (state.title) p.set("t", state.title.num);
+    if (state.chap) p.set("c", state.chap.num);
+    if (mode.cs) p.set("cs","1"); if (mode.ip) p.set("ip","1"); if (mode.ww) p.set("ww","1");
+    h = p.toString();
+  }
+  try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); }
+  catch (e) { /* some environments restrict history on file:// — shareable URLs just won't update */ }
+}
+function applyHash(){
+  const h = location.hash.slice(1);
+  if (!h) return false;
+  applyingHash = true;
+  try{
+    const p = new URLSearchParams(h);
+    if (p.get("loc")){
+      const v = p.get("loc");
+      const node = v === "RP" ? CH.find(c => c.kind === "rp") : CH.find(c => c.kind === "ch" && c.chap.num === v);
+      if (node){ ensureCache(); openNode(node); return true; }
+      return false;
+    }
+    if (p.get("q")){
+      $("q").value = state.q = p.get("q");
+      $("oCase").checked = p.get("cs") === "1"; $("oPunct").checked = p.get("ip") === "1"; $("oWord").checked = p.get("ww") === "1";
+      readOpts();
+      const b = DATA.books.find(b => b.id === p.get("b"));
+      if (b){ state.book = b; $("fBook").value = DATA.books.indexOf(b); fillTitleSel();
+        const t = b.titles.find(t => t.num === p.get("t"));
+        if (t){ state.title = t; $("fTitle").value = b.titles.indexOf(t); fillChapSel();
+          const c = t.chapters.find(c => c.num === p.get("c"));
+          if (c){ state.chap = c; $("fChap").value = t.chapters.indexOf(c); }
+        }
+      }
+      runSearch(); return true;
+    }
+  } finally { applyingHash = false; }
+  return false;
+}
+
+/* ---- mobile tree ---- */
+function closeTreeMobile(){ $("tree").classList.remove("open"); $("scrim").classList.remove("on"); }
+
+/* ---- init ---- */
+function init(){
+  // header stats
+  $("subStats").innerHTML = DATA.books.map(b => esc(b.label)).join(" · ") +
+    " now online (" + nf(DATA.stats.units) + " glosses)";
+  $("ftSource").textContent = DATA.source;
+  $("ftDate").textContent = DATA.generated;
+  fillBookSel(); fillTitleSel(); fillChapSel(); buildTree();
+
+  const q = $("q");
+  let deb;
+  q.addEventListener("input", () => {
+    state.q = q.value;
+    $("clearq").style.display = q.value ? "block" : "none";
+    clearTimeout(deb); deb = setTimeout(() => { runSearch(); pushHash(); }, 160);
+  });
+  q.addEventListener("keydown", ev => {
+    if (ev.key === "Enter"){ clearTimeout(deb); state.q = q.value; runSearch(); pushHash(); }
+    if (ev.key === "Escape"){ q.blur(); }
+  });
+  $("clearq").addEventListener("click", () => { q.value = ""; state.q = ""; $("clearq").style.display = "none"; renderWelcome(); pushHash(); q.focus(); });
+  document.addEventListener("keydown", ev => {
+    if (ev.key === "/" && document.activeElement !== q && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){
+      ev.preventDefault(); q.focus(); q.select();
+    }
+  });
+  for (const id of ["oCase","oPunct","oWord"])
+    $(id).addEventListener("change", () => { readOpts(); if (state.q) runSearch(); pushHash(); });
+  $("fBook").addEventListener("change", () => {
+    setBookFilter($("fBook").value === "" ? null : DATA.books[+$("fBook").value]);
+  });
+  $("fTitle").addEventListener("change", () => {
+    state.title = $("fTitle").value === "" ? null : state.book.titles[+$("fTitle").value];
+    state.chap = null; fillChapSel();
+    if (state.q) runSearch(); pushHash();
+  });
+  $("fChap").addEventListener("change", () => {
+    state.chap = $("fChap").value === "" ? null : state.title.chapters[+$("fChap").value];
+    if (state.q) runSearch(); pushHash();
+  });
+  $("toggleTree").addEventListener("click", () => { $("tree").classList.add("open"); $("scrim").classList.add("on"); });
+  $("scrim").addEventListener("click", closeTreeMobile);
+  window.addEventListener("hashchange", () => { if (!applyingHash) applyHash(); });
+
+  if (!applyHash()) renderWelcome();
+}
+if (typeof document !== "undefined") init();
+
+/* debug / test hook */
+if (typeof window !== "undefined")
+  window.__dd = { DATA, U, CH, examples, applyExample, normalize, findMatches,
+                  get lastResults(){ return lastResults; }, get state(){ return state; } };
+</script>
+</body>
+</html>

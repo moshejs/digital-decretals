@@ -1,0 +1,10 @@
+web/node_modules/
+web/.next/
+web/next-env.d.ts
+web/*.tsbuildinfo
+build/gloss_data.json
+.DS_Store
+# superseded working drafts (kept locally, not published)
+Decretals Gloss, online version (without Casus).docx
+Glossa Ordinaria to the Decretals, Book 1.docx
+Glossa Ordinaria to the Decretals, Book 4, rev. 4.18.docx
