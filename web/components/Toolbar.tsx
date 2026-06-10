@@ -7,6 +7,7 @@ export interface Mode {
   cs: boolean;
   ip: boolean;
   ww: boolean;
+  or: boolean; // orthographic tolerance: ae/oe ≡ e, v ≡ u
 }
 export interface Scope {
   book: Book | null;
@@ -145,6 +146,10 @@ export default function Toolbar({ data, rawQ, mode, scope, onQuery, onMode, onSc
           <label title="Match whole words only (useful for jurist sigla such as Host. or for ‘versus’)">
             <input type="checkbox" checked={mode.ww} onChange={(e) => onMode({ ...mode, ww: e.target.checked })} />
             Whole words
+          </label>
+          <label title="Treat ae/oe as e and v as u, so medieval spellings match the classical orthography of the text (penitentia → poenitentia, uultus → vultus)">
+            <input type="checkbox" checked={mode.or} onChange={(e) => onMode({ ...mode, or: e.target.checked })} />
+            ae/oe ≡ e, v ≡ u
           </label>
         </div>
       </div>

@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
-    "data": "python3 ../build/parse_gloss.py \"../Decretals Gloss, online version (without Casus).docx\" -o public/gloss-data.json",
+    "data": "python3 ../build/parse_gloss.py \"../Decretals Gloss, Books 1-5 Complete, rev. 9.23.docx\" -o public/gloss-data.json && python3 ../build/make_links.py public/gloss-data.json public/abbrev-data.json && python3 ../build/make_stats.py public/gloss-data.json public/abbrev-data.json -o data/stats.json",
     "test": "node --experimental-strip-types tests/search.test.ts"
   },
   "dependencies": {

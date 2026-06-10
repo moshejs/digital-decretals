@@ -3,9 +3,13 @@
  * master Word file (H1 book / H2 title / H3 chapter / H4 lemma).
  */
 
+/** [start, end, target ref] — a standardized Liber extra allegation inside the text. */
+export type LinkRange = [number, number, string];
+
 export interface RawUnit {
   lemma: string | null; // null = gloss before the first lemma ("in princ.")
   text: string;
+  k?: LinkRange[]; // citation-hypertext links (precomputed by build/make_links.py)
 }
 export interface Chapter {
   raw: string; // "X 4.17.13 Per venerabilem" (as in the Word file)
@@ -52,6 +56,7 @@ export interface FlatUnit {
   chap: Chapter | null;
   lemma: string | null;
   text: string;
+  links: LinkRange[];
   node: ChapterNode;
 }
 
@@ -68,7 +73,7 @@ export function flatten(data: GlossData): Flat {
       const node: ChapterNode = { kind: "rp", idx: nodes.length, book, title: null, chap: null, units: [] };
       nodes.push(node);
       for (const u of book.units) {
-        const f: FlatUnit = { id: units.length, book, title: null, chap: null, lemma: u.lemma, text: u.text, node };
+        const f: FlatUnit = { id: units.length, book, title: null, chap: null, lemma: u.lemma, text: u.text, links: u.k ?? [], node };
         units.push(f);
         node.units.push(f);
       }
@@ -78,7 +83,7 @@ export function flatten(data: GlossData): Flat {
         const node: ChapterNode = { kind: "ch", idx: nodes.length, book, title, chap, units: [] };
         nodes.push(node);
         for (const u of chap.units) {
-          const f: FlatUnit = { id: units.length, book, title, chap, lemma: u.lemma, text: u.text, node };
+          const f: FlatUnit = { id: units.length, book, title, chap, lemma: u.lemma, text: u.text, links: u.k ?? [], node };
           units.push(f);
           node.units.push(f);
         }

@@ -41,6 +41,9 @@ function setReactInput(window, input, value) {
     ["ancillaria/", ["Medieval Canon Law Virtual Library", "Mommsen"]],
     ["gratissimi/", ["Bob Scott", "thank a librarian"]],
     ["contact/", ["ereno@adelphi.edu", "845-380-0167"]],
+    ["statistics/", ["Most-alleged capitula", "Hostiensis", "Mnemonic verses", "18,257"]],
+    ["x/4.17.13/", ["Habeat potestatem", "class=\"alleg\"", "Montis Pessulani", "Open in the search app"]],
+    ["x/rex-pacificus/", ["Rex pacificus", "Bononiae commorantibus"]],
   ];
   for (const [path, needles] of pages) {
     const html = await (await fetch(BASE + path)).text();
@@ -84,6 +87,19 @@ function setReactInput(window, input, value) {
   findBtn.click();
   await sleep(500);
   check("button runs the allegation search (8 hits)", d2.querySelectorAll(".hit").length === 8, d2.querySelectorAll(".hit").length);
+  check("CSV export button present", !!d2.querySelector(".csv"));
+  check("results contain citation hyperlinks", d2.querySelectorAll(".hit a.alleg").length > 0, d2.querySelectorAll(".hit a.alleg").length);
+  // open a chapter, click an in-text allegation link -> navigates in-app
+  const firstCite2 = d2.querySelector(".hit .cite");
+  firstCite2.click();
+  await sleep(300);
+  const beforeH2 = d2.querySelector(".read h2")?.textContent;
+  const allegLink = d2.querySelector(".read a.alleg");
+  check("reading view has citation links", !!allegLink, d2.querySelectorAll(".read a.alleg").length);
+  allegLink.dispatchEvent(new w2.Event("click", { bubbles: true, cancelable: true }));
+  await sleep(300);
+  const afterH2 = d2.querySelector(".read h2")?.textContent;
+  check("citation link navigates in-app", !!afterH2 && afterH2 !== beforeH2, `${beforeH2} -> ${afterH2}`);
 
   }
   if (want("c")) {

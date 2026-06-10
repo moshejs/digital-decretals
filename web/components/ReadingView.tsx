@@ -7,6 +7,7 @@ import type { Norm, Range } from "@/lib/search";
 import { findMatches } from "@/lib/search";
 import { allegationQuery, type Capitulum } from "@/lib/abbrev";
 import { Highlighted } from "@/components/Highlighted";
+import { RichText } from "@/components/RichText";
 
 const IN_PRINC_TIP = "Gloss at the head of the chapter (in principio), before the first lemma";
 
@@ -21,12 +22,13 @@ interface Props {
   ww: boolean;
   /** capitula-register entry for this chapter (from the abbreviations spreadsheet) */
   register: Capitulum | null;
+  onRef: (ref: string) => void;
   onSearch: (q: string) => void;
   onBack: () => void;
   onNavigate: (node: ChapterNode) => void;
 }
 
-export default function ReadingView({ node, flat, focusUnit, hasResults, unitNorms, qn, ww, register, onSearch, onBack, onNavigate }: Props) {
+export default function ReadingView({ node, flat, focusUnit, hasResults, unitNorms, qn, ww, register, onRef, onSearch, onBack, onNavigate }: Props) {
   useEffect(() => {
     if (focusUnit !== null) {
       document.getElementById(`u${focusUnit}`)?.scrollIntoView({ block: "start" });
@@ -126,7 +128,7 @@ export default function ReadingView({ node, flat, focusUnit, hasResults, unitNor
               )}
             </div>
             <div className="txt" lang="la">
-              <Highlighted text={u.text} ranges={ranges(u.id, "t")} />
+              <RichText text={u.text} marks={ranges(u.id, "t")} links={u.links} onRef={onRef} />
             </div>
           </div>
         ))}

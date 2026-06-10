@@ -28,7 +28,7 @@ export default function DecretalsApp() {
 
   const [rawQ, setRawQ] = useState("");
   const [q, setQ] = useState(""); // debounced
-  const [mode, setMode] = useState<Mode>({ cs: false, ip: false, ww: false });
+  const [mode, setMode] = useState<Mode>({ cs: false, ip: false, ww: false, or: false });
   const [scope, setScope] = useState<Scope>({ book: null, title: null, chap: null });
   const [view, setView] = useState<View>({ kind: "search" });
   const [treeOpen, setTreeOpen] = useState(false);
@@ -63,20 +63,20 @@ export default function DecretalsApp() {
   const cache = useMemo(() => {
     if (!flat) return null;
     const unit = flat.units.map((u) => ({
-      t: normalize(u.text, mode.cs, mode.ip),
-      l: u.lemma ? normalize(u.lemma, mode.cs, mode.ip) : null,
+      t: normalize(u.text, mode.cs, mode.ip, mode.or),
+      l: u.lemma ? normalize(u.lemma, mode.cs, mode.ip, mode.or) : null,
     }));
     const chapInc = new Map<ChapterNode, Norm>();
     const titleRub = new Map<Title, Norm>();
     for (const n of flat.nodes)
       if (n.kind === "ch") {
-        chapInc.set(n, normalize(n.chap!.incipit, mode.cs, mode.ip));
-        if (!titleRub.has(n.title!)) titleRub.set(n.title!, normalize(n.title!.rubric, mode.cs, mode.ip));
+        chapInc.set(n, normalize(n.chap!.incipit, mode.cs, mode.ip, mode.or));
+        if (!titleRub.has(n.title!)) titleRub.set(n.title!, normalize(n.title!.rubric, mode.cs, mode.ip, mode.or));
       }
     return { unit, chapInc, titleRub };
-  }, [flat, mode.cs, mode.ip]);
+  }, [flat, mode.cs, mode.ip, mode.or]);
 
-  const qn = useMemo(() => normalize(q, mode.cs, mode.ip).n, [q, mode.cs, mode.ip]);
+  const qn = useMemo(() => normalize(q, mode.cs, mode.ip, mode.or).n, [q, mode.cs, mode.ip, mode.or]);
 
   /* ---- search ---- */
   const results: SearchResults | null = useMemo(() => {
@@ -143,7 +143,7 @@ export default function DecretalsApp() {
     if (uq) {
       setRawQ(uq);
       setQ(uq);
-      setMode({ cs: get("cs") === "1", ip: get("ip") === "1", ww: get("ww") === "1" });
+      setMode({ cs: get("cs") === "1", ip: get("ip") === "1", ww: get("ww") === "1", or: get("or") === "1" });
       const book = data.books.find((b) => b.id === get("b")) ?? null;
       const title = book?.titles.find((t) => t.num === get("t")) ?? null;
       const chap = title?.chapters.find((c) => c.num === get("c")) ?? null;
@@ -166,6 +166,7 @@ export default function DecretalsApp() {
       if (mode.cs) p.set("cs", "1");
       if (mode.ip) p.set("ip", "1");
       if (mode.ww) p.set("ww", "1");
+      if (mode.or) p.set("or", "1");
     }
     const s = p.toString();
     try {
@@ -192,8 +193,12 @@ export default function DecretalsApp() {
     if (node) openNode(node);
   };
   const onExample = (e: Example) => {
-    setMode({ cs: !!e.cs, ip: false, ww: !!e.ww });
+    setMode({ cs: !!e.cs, ip: false, ww: !!e.ww, or: false });
     onQuery(e.q, true);
+  };
+  const openByRef = (ref: string) => {
+    const node = flat?.nodes.find((n) => n.kind === "ch" && n.chap!.num === ref);
+    if (node) openNode(node);
   };
   const onBack = () => {
     setView({ kind: "search" });
@@ -234,8 +239,9 @@ export default function DecretalsApp() {
                   qn={results ? results.qn : null}
                   ww={mode.ww}
                   register={view.node.kind === "ch" ? capMap?.get(view.node.chap!.num) ?? null : null}
+                  onRef={openByRef}
                   onSearch={(q) => {
-                    setMode({ cs: false, ip: false, ww: false });
+                    setMode({ cs: false, ip: false, ww: false, or: false });
                     onQuery(q, true);
                   }}
                   onBack={onBack}
@@ -251,6 +257,8 @@ export default function DecretalsApp() {
                   onBookChip={onBookChip}
                   onOpenNode={openNode}
                   onOpenTitle={onOpenTitle}
+                  onRef={openByRef}
+                  mode={mode}
                 />
               ) : (
                 <Welcome data={data} onExample={onExample} />

@@ -27,16 +27,17 @@ function check(name: string, cond: boolean, extra?: unknown) {
   }
 }
 
-function count(q: string, opts: { cs?: boolean; ip?: boolean; ww?: boolean } = {}) {
+function count(q: string, opts: { cs?: boolean; ip?: boolean; ww?: boolean; or?: boolean } = {}) {
   const cs = !!opts.cs,
     ip = !!opts.ip,
-    ww = !!opts.ww;
-  const qn = normalize(q, cs, ip).n;
+    ww = !!opts.ww,
+    or = !!opts.or;
+  const qn = normalize(q, cs, ip, or).n;
   let occ = 0,
     units = 0;
   for (const u of flat.units) {
-    const tr = findMatches(normalize(u.text, cs, ip), qn, ww);
-    const lr = u.lemma ? findMatches(normalize(u.lemma, cs, ip), qn, ww) : [];
+    const tr = findMatches(normalize(u.text, cs, ip, or), qn, ww);
+    const lr = u.lemma ? findMatches(normalize(u.lemma, cs, ip, or), qn, ww) : [];
     const n = tr.length + lr.length;
     if (n) {
       occ += n;
@@ -80,6 +81,40 @@ for (const ref of SPOT) {
   const c = abbrev.capitula.find((x) => x.ref === ref)!;
   const got = count(allegationQuery(c)).occ;
   check(`register vs corpus, X ${ref} (${c.n})`, got === c.n, `${got}`);
+}
+
+console.log("== citation hypertext (precomputed links) ==");
+{
+  const reg = new Map(abbrev.capitula.map((c) => [c.ref, c]));
+  let n = 0, bad = 0, overlap = 0, inbound4_17_13 = 0;
+  for (const u of flat.units) {
+    let last = -1;
+    for (const [s, e, ref] of u.links) {
+      n++;
+      if (ref === "4.17.13") inbound4_17_13++;
+      const c = reg.get(ref);
+      const expect = c ? `${c.abbrev}, ${c.ddinc}`.toLowerCase() : null;
+      if (!expect || u.text.slice(s, e).toLowerCase() !== expect) bad++;
+      if (s < last) overlap++;
+      last = e;
+    }
+  }
+  check("18,257 allegations hyperlinked", n === 18257, n);
+  check("every link slices to its standardized allegation", bad === 0, bad);
+  check("links are sorted and non-overlapping", overlap === 0);
+  check("X 4.17.13 has 8 inbound links (= register)", inbound4_17_13 === 8, inbound4_17_13);
+}
+
+console.log("== orthographic tolerance (ae/oe = e, v = u) ==");
+{
+  check('normalize("poenitentia") → "penitentia"', normalize("poenitentia", false, false, true).n === "penitentia");
+  check('normalize("uultus") matches "vultus"', normalize("vultus", false, false, true).n === normalize("uultus", false, false, true).n);
+  const hay = normalize("de poenitentia loqui", false, false, true);
+  const m = findMatches(hay, normalize("penitentia", false, false, true).n, false);
+  check("ortho match maps back over the full digraph", m.length === 1 && "de poenitentia loqui".slice(m[0][0], m[0][1]) === "poenitentia", JSON.stringify(m));
+  const plain = count("quae", { ww: true }).occ;
+  const tolerant = count("que", { ww: true, or: true }).occ;
+  check("ortho 'que' (ww) ≥ classical 'quae' (ww)", tolerant >= plain && plain > 0, `${tolerant} vs ${plain}`);
 }
 
 console.log("== highlight ranges map back to original text ==");

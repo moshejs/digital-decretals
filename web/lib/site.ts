@@ -5,4 +5,4 @@ export const SITE_URL =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : "http://localhost:3000");
 
-export const ROUTES = ["/", "/abbreviations", "/text", "/allegations", "/about", "/ancillaria", "/gratissimi", "/contact"];
+export const ROUTES = ["/", "/abbreviations", "/statistics", "/text", "/allegations", "/about", "/ancillaria", "/gratissimi", "/contact"];

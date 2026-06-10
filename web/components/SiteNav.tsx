@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS: Array<[href: string, label: string]> = [
   ["/", "Search"],
   ["/abbreviations", "Abbreviations"],
+  ["/statistics", "Statistics"],
   ["/text", "The Text"],
   ["/allegations", "Legal Allegations"],
   ["/about", "About"],

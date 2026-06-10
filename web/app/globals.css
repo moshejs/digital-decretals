@@ -72,6 +72,13 @@ table.abbr a{font-size:12px;font-weight:600;white-space:nowrap}
 .badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.05em;border-radius:5px;padding:1px 6px;background:#efe8d8;color:var(--rubric-dark);margin-right:6px}
 .count-note{color:var(--faint);font-size:12.5px;margin:8px 2px}
 
+/* ---------- citation hypertext ---------- */
+a.alleg{color:inherit;border-bottom:1px dotted #b8a98c;text-decoration:none}
+a.alleg:hover{color:var(--rubric);border-bottom-color:var(--rubric);text-decoration:none}
+a.alleg mark{border-bottom:none}
+.csv{margin-left:auto;font-size:12px;font-weight:650;border:1px solid var(--line);border-radius:999px;padding:3px 12px;white-space:nowrap}
+.csv:hover{border-color:var(--focus);text-decoration:none}
+
 /* ---------- reading view register info ---------- */
 .reginfo{margin:-6px 0 14px;padding:9px 13px;background:#f6f1e4;border:1px solid var(--line-soft);border-radius:9px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 .reginfo .insc{font-family:var(--serif);font-style:italic}

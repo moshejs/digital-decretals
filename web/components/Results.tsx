@@ -4,7 +4,9 @@ import { useState } from "react";
 import type { Book, ChapterNode, FlatUnit, GlossData, Title } from "@/lib/data";
 import { nf } from "@/lib/data";
 import type { Range } from "@/lib/search";
-import { Cite, Highlighted } from "@/components/Highlighted";
+import { Cite } from "@/components/Highlighted";
+import { RichText } from "@/components/RichText";
+import type { Mode } from "@/components/Toolbar";
 
 export interface Hit {
   u: FlatUnit;
@@ -33,10 +35,12 @@ interface Props {
   onBookChip: (b: Book) => void;
   onOpenNode: (node: ChapterNode, focusUnit?: number) => void;
   onOpenTitle: (t: Title) => void;
+  onRef: (ref: string) => void;
+  mode: Mode;
 }
 type Chapter = NonNullable<FlatUnit["chap"]>;
 
-export default function Results({ data, results: r, rawQ, scope, onBookChip, onOpenNode, onOpenTitle }: Props) {
+export default function Results({ data, results: r, rawQ, scope, onBookChip, onOpenNode, onOpenTitle, onRef, mode }: Props) {
   const [visible, setVisible] = useState(PAGE);
 
   const scopeBits: string[] = [];
@@ -63,6 +67,11 @@ export default function Results({ data, results: r, rawQ, scope, onBookChip, onO
         <span className="dim ms">
           ({nf(data.stats.units)} glosses searched in {r.ms < 1 ? "<1" : Math.round(r.ms)} ms)
         </span>
+        {r.hits.length > 0 && (
+          <a className="csv" href={csvHref(r, rawQ, mode)} download={csvName(rawQ)} title="Download these results as a CSV spreadsheet">
+            ⬇ CSV
+          </a>
+        )}
       </div>
 
       <div className="chips">
@@ -131,7 +140,7 @@ export default function Results({ data, results: r, rawQ, scope, onBookChip, onO
               </span>
             </header>
             <div className="txt" lang="la">
-              <Highlighted text={h.u.text} ranges={h.tr} />
+              <RichText text={h.u.text} marks={h.tr} links={h.u.links} onRef={onRef} />
             </div>
           </article>
         ))}
@@ -144,4 +153,35 @@ export default function Results({ data, results: r, rawQ, scope, onBookChip, onO
       )}
     </>
   );
+}
+
+function csvField(v: string | number): string {
+  const s = String(v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function csvName(q: string) {
+  return `digital-decretals_${q.replace(/[^a-z0-9]+/gi, "-").slice(0, 40)}.csv`;
+}
+function csvHref(r: SearchResults, q: string, mode: Mode): string {
+  const head = ["citation", "book", "title", "title_rubric", "capitulum", "incipit", "lemma", "occurrences", "gloss_text"];
+  const rows = r.hits.map((h) => {
+    const u = h.u;
+    const cite = u.chap
+      ? `X ${u.chap.num}${u.lemma === null ? ", in princ." : ` s.v. ${u.lemma}`}`
+      : `Rex pacificus, s.v. ${u.lemma ?? ""}`;
+    return [
+      cite,
+      u.book.label,
+      u.title?.num ?? "",
+      u.title?.rubric ?? "",
+      u.chap?.num ?? "",
+      u.chap?.incipit ?? "",
+      u.lemma ?? "(in princ.)",
+      h.n,
+      u.text,
+    ].map(csvField).join(",");
+  });
+  const meta = `query: ${q} | options: ${[mode.cs && "case", mode.ip && "ignore-punct", mode.ww && "whole-words", mode.or && "ortho"].filter(Boolean).join(" ") || "default"} | ${r.occ} occurrences in ${r.hits.length} glosses | digitaldecretals`;
+  const csv = "\uFEFF" + [head.join(","), ...rows].join("\r\n") + "\r\n# " + csvField(meta) + "\r\n";
+  return "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
 }
