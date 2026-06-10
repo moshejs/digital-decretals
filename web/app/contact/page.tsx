@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact — The Digital Decretals",
+  title: "Contact",
   description: "Contact information for Prof. Edward A. Reno III.",
 };
 

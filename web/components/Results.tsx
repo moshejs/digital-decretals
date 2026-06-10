@@ -130,7 +130,7 @@ export default function Results({ data, results: r, rawQ, scope, onBookChip, onO
                 {h.n > 1 && <> · {h.n} occurrences</>}
               </span>
             </header>
-            <div className="txt">
+            <div className="txt" lang="la">
               <Highlighted text={h.u.text} ranges={h.tr} />
             </div>
           </article>

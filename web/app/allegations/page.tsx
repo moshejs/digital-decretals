@@ -3,7 +3,7 @@ import Link from "next/link";
 import TryEx from "@/components/TryEx";
 
 export const metadata: Metadata = {
-  title: "Legal Allegations — The Digital Decretals",
+  title: "Legal Allegations",
   description:
     "How to search the standardized legal allegations of the Glossa Ordinaria: Decretum, Liber extra, extravagantes, Codex, Digest, Institutes, Novellae — plus jurists' sigla and mnemonic verses.",
 };

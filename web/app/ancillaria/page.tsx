@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Ancillaria — The Digital Decretals",
+  title: "Ancillaria",
   description: "Digital canon law resources: ancillary sites and editions for the study of medieval canon law.",
 };
 

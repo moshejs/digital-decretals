@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "About — The Digital Decretals",
+  title: "About",
   description: "Introduction, scope and history of the Digital Decretals project, by Edward A. Reno III.",
 };
 
@@ -12,45 +12,14 @@ export default function AboutPage() {
       <h1>About the Digital Decretals</h1>
       <p className="lede">Introduction, scope and parameters of the project — Edward A. Reno III</p>
 
-      <h2>Welcome to the Digital Decretals</h2>
+      <h2>The project</h2>
       <p>
-        This is a Digital Humanities project to render into electronic form Bernard of Parma's commentary on the{" "}
-        <i>Liber extra</i>, the first official and exclusive collection of canon law for the Catholic Church, edited
-        by the Dominican St. Raymond of Penyafort (1175–1275) and promulgated in 1234 by Pope Gregory IX (1227–41).
-        Although it was one of a number of commentaries on the <i>Liber extra</i> produced in the 13th century,
-        Bernard's work would quickly become canonized as the <i>Glossa Ordinaria</i> to the collection, and became
-        the foundation for canon law instruction on the <i>Liber extra</i> in the medieval University. It is, thus,
-        the commentary found copied into the margins of the overwhelming majority of surviving <i>Liber extra</i>{" "}
-        manuscripts. The version of the text presented here is based upon the 1582 printed edition dubbed the{" "}
-        <i>Editio Romana</i>, put together by the commission known as the Correctores Romani and published by order
-        of Pope Gregory XIII (1572–85) as part of the authorized text of the <i>Corpus iuris canonici</i> for the
-        post-Tridentine Church.
-      </p>
-      <p>
-        This digital version, which presents Books 1 through 5 of the <i>Glossa Ordinaria</i> in their entirety,
-        does two things. First, and most obviously, it provides a fully searchable text of the gloss. The text is
-        structured using a virtual architecture that recreates the hierarchical division of the gloss into 5 books,
-        185 titles, 1971 capitula, and thousands of gloss words (lemmata), following the sequence of the{" "}
-        <i>Liber extra</i>. On this site, that architecture is the <b>Browse</b> panel beside the search page, which
-        lets you jump forwards and back to any place in the text down to the lemma level (in the downloadable Word
-        and PDF files, the same architecture appears as the Navigation Pane and the Bookmarks tree respectively).
-      </p>
-      <p>
-        Second, and most significantly, the tens of thousands of legal allegations in the gloss have been
-        standardized such that they can be searched and quantified. For the first time, users will be able to
-        identify where and how often any particular text is cited from the <i>Liber extra</i>, Gratian's{" "}
-        <i>Decretum</i>, or the 4 volumes of the <i>Corpus iuris civilis</i>: Codex, Digest, Institutes,
-        Novellae/Authenticum (allegation counts for every capitulum from the <i>Liber extra</i> are included in the{" "}
-        <Link href="/abbreviations">Abbreviations explorer</Link>). As anyone who has used a medieval legal commentary
-        knows, the legal allegations are an absolutely essential part of assessing how individual laws were actually
-        received and interpreted within the precedent-based system that medieval Canon Law evolved into coming out
-        of the 12th century, and offer a vivid illustration of the central role of jurisprudence in shaping the
-        legal institutions of the medieval Church.
-      </p>
-      <p>
-        The system of legal allegations devised for the project is fairly intuitive, but it does require a brief
-        tutorial to utilize — please take a moment to read the <Link href="/allegations">Legal Allegations</Link>{" "}
-        page.
+        The Digital Decretals renders into electronic form Bernard of Parma's <i>Glossa Ordinaria</i> to the{" "}
+        <i>Liber extra</i> (the Decretals of Gregory IX, 1234), based on the 1582 <i>Editio Romana</i> — Books 1–5
+        in their entirety, with the tens of thousands of legal allegations standardized so they can be searched and
+        quantified. The full introduction appears on the <Link href="/">search page</Link> (this site's home); the
+        citation system is explained on <Link href="/allegations">Legal Allegations</Link>; transcription
+        conventions and downloads are on <Link href="/text">The Text</Link>.
       </p>
 
       <h2>Mission statement</h2>
@@ -93,6 +62,16 @@ export default function AboutPage() {
 
       <h2>Project updates</h2>
       <ul>
+        <li>
+          <b>6/26:</b> The Digital Decretals relaunched as this <b>web application</b>: in-browser search of the
+          complete gloss (exact-punctuation allegation matching, with ignore-punctuation / case / whole-word modes
+          and book → title → chapter filters); a browse-and-read view of all 1,970 glossed capitula with
+          register-backed inscriptions and one-click retrieval of each capitulum's allegations; the abbreviations
+          spreadsheet reborn as a live <Link href="/abbreviations">explorer</Link>; shareable deep links to any
+          search or passage; and the project documentation migrated in full. The Word/PDF/Excel files — now joined
+          by per-book Word files and a single-file offline edition — remain downloadable on{" "}
+          <Link href="/text">The Text</Link>.
+        </li>
         <li>
           <b>9/23:</b> A revised text of the entire gloss, Books 1–5, and an updated corresponding spreadsheet were
           released; they are the text and data presented throughout this site (downloads on{" "}

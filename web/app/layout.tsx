@@ -1,16 +1,31 @@
 import type { Metadata, Viewport } from "next";
 import SiteNav from "@/components/SiteNav";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
+const DESCRIPTION =
+  "Searchable edition of Bernard of Parma's Glossa Ordinaria to the Decretals of Gregory IX (Liber extra), Books 1–5 complete, with standardized legal allegations, abbreviation tables, and the full capitula register. Text by Edward A. Reno III.";
+
 export const metadata: Metadata = {
-  title: "The Digital Decretals — Glossa Ordinaria of Bernard of Parma",
-  description:
-    "Searchable edition of Bernard of Parma's Glossa Ordinaria to the Decretals of Gregory IX (Liber extra), Books 1–5 complete, with standardized legal allegations, abbreviation tables, and the full capitula register. Text by Edward A. Reno III.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "The Digital Decretals — Glossa Ordinaria of Bernard of Parma",
+    template: "%s — The Digital Decretals",
+  },
+  description: DESCRIPTION,
+  openGraph: {
+    title: "The Digital Decretals",
+    description: DESCRIPTION,
+    type: "website",
+    siteName: "The Digital Decretals",
+  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#f7f5f0",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -41,6 +56,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span>Glossa Ordinaria, Books 1–5 complete (rev. 9/23), based on the Editio Romana (1582)</span>
             <span>
               <a href="mailto:ereno@adelphi.edu">ereno@adelphi.edu</a>
+            </span>
+            <span>
+              <a href="https://github.com/moshejs/digital-decretals" target="_blank" rel="noopener noreferrer">
+                Source on GitHub
+              </a>
             </span>
           </div>
         </footer>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Gratissimi — The Digital Decretals",
+  title: "Gratissimi",
   description: "Acknowledgements for the Digital Decretals project.",
 };
 

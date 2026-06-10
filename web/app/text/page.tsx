@@ -3,7 +3,7 @@ import Link from "next/link";
 import { asset } from "@/lib/abbrev";
 
 export const metadata: Metadata = {
-  title: "The Text — The Digital Decretals",
+  title: "The Text",
   description:
     "Transcription conventions of the Digital Decretals (text base, orthography, abbreviations, punctuation, numeration) and downloads: Word, PDF, and the abbreviations spreadsheet.",
 };
@@ -212,6 +212,21 @@ export default function TextPage() {
           </a>
         </div>
       ))}
+      <div className="dl-card">
+        <span className="ico" aria-hidden>
+          🌐
+        </span>
+        <span className="meta">
+          <b>Single-file offline edition — HTML</b>
+          <span>
+            The complete searchable edition (search, filters, browse) in one 5 MB file: download it, double-click
+            it, and it works in any browser with no internet connection — handy for archives, travel, and teaching.
+          </span>
+        </span>
+        <a className="get" href={asset("/downloads/digital-decretals-offline.html")} download>
+          Download
+        </a>
+      </div>
       <h3>Individual books (Word, rev. 9/23)</h3>
       {BOOKS_DL.map(([book, note]) => {
         const file = `Glossa Ordinaria to the Decretals, ${book}, rev. 9.23.docx`;

@@ -116,7 +116,7 @@ export default function ReadingView({ node, flat, focusUnit, hasResults, unitNor
         )}
         {node.units.map((u) => (
           <div className={`gunit${focusUnit === u.id ? " focus" : ""}`} id={`u${u.id}`} key={u.id}>
-            <div className="lem">
+            <div className="lem" lang="la">
               {u.lemma === null ? (
                 <span className="inp" title={IN_PRINC_TIP}>
                   In princ.
@@ -125,7 +125,7 @@ export default function ReadingView({ node, flat, focusUnit, hasResults, unitNor
                 <Highlighted text={u.lemma} ranges={ranges(u.id, "l")} />
               )}
             </div>
-            <div className="txt">
+            <div className="txt" lang="la">
               <Highlighted text={u.text} ranges={ranges(u.id, "t")} />
             </div>
           </div>
